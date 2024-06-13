@@ -17,6 +17,7 @@
 #define TRUE 1
 #define FALSE 0
 
+
 char str[STRING_SIZE];
 
 int clientNode() {
@@ -50,14 +51,66 @@ int rootNode(int numReplicas) {
     return 0;
 }
 
-char replicaNode(int world_rank) {
+int findKeywordOccurenccess(char *folderPath, char *fileName, char *keyWord) {
+    char filePath[256];
+    sprintf(filePath, "%s/%s", folderPath, fileName);
+
+    printf("%s\n", filePath);
+    FILE *file = fopen(filePath, "r");
+    char line[256];
+    int lineCount = 0;
+    int occurenceCount = 0;
+
+    if (file == NULL) {
+        perror("fopen");
+        return 0;
+    }
+
+    while (fgets(line, sizeof(line), file)) {
+        lineCount++;
+        if (strstr(line, keyWord) != NULL) {
+            occurenceCount++;
+        }
+    }
+
+    //printf("Ocorrências da palavra chave '%s' no arquivo '%s': %d\n", keyWord, fileName, occurenceCount);
+    fclose(file);
+    return occurenceCount;
+}
+
+void findTxtFiles(char *keyWord) {
+    char folderPath[7] = "./texts";
+    struct dirent *entry;
+    DIR *dp = opendir(folderPath);
+
+    if (dp == NULL) {
+        perror("opendir");
+        return;
+    }
+
+    while ((entry = readdir(dp))) {
+        if (entry->d_type == DT_REG) {
+            const char *dot = strrchr(entry->d_name, '.');
+            if (dot && strcmp(dot, ".txt") == 0) {
+                char *fileName = entry->d_name;
+                int occurence = findKeywordOccurenccess(folderPath, fileName, keyWord);
+            }
+        }
+    }
+
+    closedir(dp);
+}
+
+void replicaNode(int world_rank) {
     int root_rank = 1;
+    int occurenceCount = 0;
     char token[STRING_SIZE];
+
     while (TRUE) {
         MPI_Recv(&token, STRING_SIZE, MPI_CHAR, root_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         printf("Réplica %d recebeu: %s\n", world_rank, token);
+        findTxtFiles(token);
     }
-    return "A";
 }
 
 int main(int argc, char** argv) {
