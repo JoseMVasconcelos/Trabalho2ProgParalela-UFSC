@@ -37,7 +37,6 @@ int rootNode(int numReplicas) {
 
     for (int i = 0; i < numReplicas; i++) {
         replicas_rank[i] = i+2;
-        printf("%d\n", replicas_rank[i]);
     }
 
     MPI_Recv(&str, STRING_SIZE, MPI_CHAR, client_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -68,8 +67,6 @@ int main(int argc, char** argv) {
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     int numReplicas = world_size - 2;
-
-
 
     if (world_size < 3) {
         fprintf(stderr, "World size tem que ser pelo menos 3 para %s\n", argv[0]);
