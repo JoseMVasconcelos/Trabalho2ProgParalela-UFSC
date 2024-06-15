@@ -11,9 +11,12 @@ def client():
     queries = ["Lorem Ipsum Dolo", "Teste2", "Brabo se funcionar"]
     query_position = 0
     root_rank = 1
-    print(f"CLIENTE enviando pesquisa para nó raiz: {queries[query_position]}")
-    comm.send(queries[query_position], dest=root_rank)
-    print(f"CLIENTE recebeu o resultado do nó raiz!: {comm.recv(source=root_rank)}")
+
+    while query_position < len(queries):
+        print(f"CLIENTE enviando pesquisa para nó raiz: {queries[query_position]}")
+        comm.send(queries[query_position], dest=root_rank)
+        print(f"CLIENTE recebeu o resultado do nó raiz!: {comm.recv(source=root_rank)}")
+        query_position += 1
     
 
 def root(num_replicas):
@@ -44,7 +47,10 @@ def root(num_replicas):
                     query_response.update({result[0]: result[1]})
             replicas_index = (replicas_index + 1) % num_replicas
         print("NÓ RAIZ enviando resposta para o cliente")
-        comm.send(query_response, dest=client_rank)
+        if query_response:
+            comm.send(query_response, dest=client_rank)
+        else:
+            comm.send("Sem ocorrências!", dest=client_rank)
 
     
 def replica():
