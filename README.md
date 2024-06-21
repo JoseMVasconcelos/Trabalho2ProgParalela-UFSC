@@ -26,13 +26,15 @@ Abaixo, as principais características da implementação:
 
 - **Nó Raiz**: O `nó raiz`, de `rank 1`, espera uma solicitação de pesquisa do `cliente`, quando recebe, separa a query, em palavras chaves separadas, utilizando Round Robin para enviar as palavras às `réplicas`. Por exemplo uma query de `"Computação paralela e distribuida"` e com `3 réplicas`, seria separa em um array da seguinte forma: `[["Computação", "distribuida"], ["paralela"], ["e"]]`. Após enviar as palavras às `réplicas`, o `nó raiz` escuta qualquer fonte, e junta as repostas no dicionário descrito anteriormente. 
 
-- **Réplicas (n)**: Para as `réplicas`, são atribuido os `ranks 2-n`, dependendo da quantidade de processos escolhino na execução. As réplicas esperam uma solicitação, e para cada palavra chave recebida, pesquisa nos arquivos `.txt` da pasta `texts`. Após esgotarem todas as linhas e todas as palavras chaves, retornam o número de ocorrências em cada arquivo, para o mesmo endereço do solicitante. Elas rodam em paralelo uma com a outra, e não tem ordem para responder ao solicitante. O `nó raiz` pode solicitar na ordem `1, 3, 2` e receber na ordem `3, 2, 1`.
+- **Réplicas (n)**: Para as `réplicas`, são atribuido os `ranks 2-n`, dependendo da quantidade de processos escolhino na execução. As réplicas esperam uma solicitação, e para cada palavra chave recebida, pesquisa nos arquivos `.txt` da pasta `texts`. As `réplicas` também fazem um tratamento nos textos, removendo pontuações e _linebreaks_ que poderiam atrapalhar na pesquisa. Após esgotarem todas as linhas e todas as palavras chaves, retornam o número de ocorrências em cada arquivo, para o mesmo endereço do solicitante. Elas rodam em paralelo uma com a outra, e não tem ordem para responder ao solicitante. O `nó raiz` pode solicitar na ordem `1, 3, 2` e receber na ordem `3, 2, 1`. 
 
 - **TIMESTAMPS**: A cada envio/recebimento do `cliente` e `nó raiz`, é printado uma mensagem na tela, junto a um TIMESTAMP: 
   
     `CLIENTE enviando pesquisa para nó raiz: blockchain criptomoedas bitcoin. TIMESTAMP: 2024-06-20 17:24:16.480956`.
     
      Essa foi uma decisão tomada para burlar o sistema de print desordenado do python. O python coloca todas as mensagens a serem printadas em um buffer, e elas podem sair na ordem errada, o timestamp server para entender a orderm correta das mensagens.
+
+- **Textos e queries**: Os textos e queries utilizados foram feitos por inteligencias artificiais, e o seus conteudos não possuem peso significativo, servindo apenas para mostrar o funcionamento do trabalho implementado.
 
 ### Execução
 
@@ -90,25 +92,71 @@ $ source .venv/Scripts/activate.bat
 ```
 Após ativar o `virtual enviroment`, tente reinstalar a biblioteca `mpi4py` e rodar o código.
 
-### Casos de Teste e Resultados Esperados
+### Caso de Teste e Resultados Esperados
+
+## CASO 1
 Número de réplicas = 2
 
 `CLIENTE enviando pesquisa para nó raiz: saúde mental psicologia terapia.`
 
-`NÓ RAIZ envia palavra chaves ['mental', 'terapia'] para réplica 1.`
-
 `NÓ RAIZ envia palavra chaves ['saúde', 'psicologia'] para réplica 0.`
 
-`CLIENTE recebeu o resultado do nó raiz!: {'A Evolução e o Impacto dos Video Games na Sociedade Moderna.txt': 2, 'Desafios Ecológicos A Crise Ambiental do Século XXI.txt': 1}`
+`NÓ RAIZ envia palavra chaves ['mental', 'terapia'] para réplica 1.`
 
-Observando os textos:
+`CLIENTE recebeu o resultado do nó raiz!: {'A Evolução e o Impacto dos Video Games na Sociedade Moderna.txt': 4, 'Desafios Ecológicos A Crise Ambiental do Século XXI.txt': 1}.`
+
+### Observando os textos desse caso (palavras chaves encontradas em highlight):
 #### A Evolução e o Impacto dos Video Games na Sociedade Moderna:
 Os video games, desde sua criação nas décadas de 1970 e 1980, evoluíram de simples jogos de arcade para complexas obras interativas que abrangem diversos gêneros e plataformas. Inicialmente, jogos como Pong e Space Invaders cativaram jogadores com suas mecânicas simples e gráficos rudimentares. No entanto, o avanço da tecnologia permitiu que os video games se tornassem cada vez mais sofisticados, oferecendo experiências imersivas com gráficos em alta definição, narrativa envolvente e jogabilidade inovadora. Hoje, os jogos são jogados em consoles, computadores e dispositivos móveis, alcançando uma audiência global diversificada.
 
 A indústria de video games é uma das mais lucrativas do entretenimento, superando até mesmo a indústria cinematográfica em termos de receita. Este crescimento impressionante é impulsionado não apenas pela venda de jogos, mas também por modelos de negócios inovadores como jogos gratuitos com compras dentro do aplicativo, assinaturas de serviços de jogos e esportes eletrônicos (eSports). Os eSports, em particular, se tornaram um fenômeno cultural, com competições internacionais atraindo milhões de espectadores e oferecendo prêmios substanciais. Plataformas de streaming como Twitch e YouTube Gaming permitiram que jogadores transmitissem suas partidas ao vivo, criando novas oportunidades de carreira e fomentando uma comunidade global de gamers.
 
-Além do entretenimento, os video games têm mostrado um impacto significativo em várias áreas da sociedade. Na educação, jogos são utilizados como ferramentas de aprendizado, promovendo habilidades cognitivas, resolução de problemas e colaboração. Na saúde, a gamificação está sendo usada para reabilitação física e `mental`, oferecendo terapias interativas para pacientes. No entanto, os video games também enfrentam críticas e desafios, como a preocupação com a dependência, o impacto na saúde `mental` e a representação de violência. A pesquisa e o debate contínuos sobre os efeitos dos video games são essenciais para maximizar seus benefícios e mitigar seus riscos, garantindo que continuem a ser uma força positiva na sociedade moderna.
+Além do entretenimento, os video games têm mostrado um impacto significativo em várias áreas da sociedade. Na educação, jogos são utilizados como ferramentas de aprendizado, promovendo habilidades cognitivas, resolução de problemas e colaboração. Na `saúde`, a gamificação está sendo usada para reabilitação física e `mental`, oferecendo terapias interativas para pacientes. No entanto, os video games também enfrentam críticas e desafios, como a preocupação com a dependência, o impacto na `saúde` `mental` e a representação de violência. A pesquisa e o debate contínuos sobre os efeitos dos video games são essenciais para maximizar seus benefícios e mitigar seus riscos, garantindo que continuem a ser uma força positiva na sociedade moderna.
+
+##### Importante observar que a palavra "terapias" não é percebida, isso ocorre pois foi escolhido um método de implementação, que espera a string EXATA. 
+
+#### Desafios Ecológicos A Crise Ambiental do Século XXI:
+
+Os problemas ecológicos representam uma das maiores ameaças à sustentabilidade e à `saúde` do planeta. A degradação ambiental, impulsionada por atividades humanas como desmatamento, urbanização e agricultura intensiva, tem causado a destruição de habitats naturais, levando à perda de biodiversidade. Espécies inteiras estão sendo extintas a uma taxa alarmante, comprometendo ecossistemas complexos e interconectados que são vitais para a estabilidade ambiental e para a provisão de serviços ecossistêmicos essenciais, como a purificação da água, a polinização e o controle de pragas.
+
+A poluição é outro grande problema ecológico, com efeitos devastadores sobre o ar, a água e o solo. Emissões industriais e de veículos contribuem para a poluição do ar, causando problemas respiratórios em seres humanos e animais, além de contribuir para o aquecimento global. A poluição da água, resultante do despejo de resíduos industriais, agrícolas e domésticos, contamina fontes de água potável e prejudica a vida aquática. Além disso, o uso excessivo de pesticidas e fertilizantes químicos na agricultura degrada a qualidade do solo, tornando-o menos fértil e mais propenso à erosão.
+
+As mudanças climáticas, amplamente atribuídas às atividades humanas, exacerbam todos esses problemas. O aumento das temperaturas globais está associado ao derretimento das calotas polares e ao aumento do nível do mar, ameaçando comunidades costeiras e ecossistemas marinhos. Eventos climáticos extremos, como furacões, secas e enchentes, estão se tornando mais frequentes e intensos, causando destruição em larga escala e colocando em risco a segurança alimentar e hídrica. Para mitigar esses problemas ecológicos, é fundamental adotar políticas de conservação, promover a sustentabilidade e investir em tecnologias limpas que reduzam o impacto ambiental.
+
+#### Sem ocorrencias nos outros textos
+
+## CASO 2
+Número de réplicas = 3
+
+`CLIENTE enviando pesquisa para nó raiz: agricultura sustentável agroecologia permacultura.`
+
+`NÓ RAIZ envia palavra chaves ['agricultura', 'permacultura'] para réplica 0.`
+
+`NÓ RAIZ envia palavra chaves ['sustentável'] para réplica 1.` 
+
+`NÓ RAIZ envia palavra chaves ['agroecologia'] para réplica 2.`
+
+`CLIENTE recebeu o resultado do nó raiz!: {'A Importância da Geologia para a Compreensão da Terra e seus Recursos.txt': 2, 'Desafios Ecológicos A Crise Ambiental do Século XXI.txt': 2}`
+
+### Observando os textos desse caso (palavras chaves encontradas em highlight):
+#### A Importância da Geologia para a Compreensão da Terra e seus Recursos
+A geologia, a ciência que estuda a composição, estrutura, processos e história da Terra, desempenha um papel crucial na nossa compreensão do planeta e na exploração de seus recursos naturais. Ao investigar rochas, minerais, fósseis e processos geológicos, os geólogos podem revelar a história da Terra, desde sua formação há cerca de 4,6 bilhões de anos até os eventos mais recentes que moldaram a superfície terrestre. Esse conhecimento é fundamental não apenas para a ciência pura, mas também para aplicações práticas em diversas indústrias, incluindo a mineração, petróleo e gás, construção civil e gestão de riscos naturais.
+
+A exploração de recursos minerais e energéticos é uma das áreas mais importantes da geologia. Minerais metálicos, como ferro, cobre e ouro, e minerais não metálicos, como calcário e fosfato, são essenciais para a economia global e para a produção de bens de consumo. A geologia também é crucial na prospecção e extração de combustíveis fósseis, como petróleo, gás natural e carvão, que continuam a ser fontes primárias de energia. Técnicas avançadas de prospecção geofísica e geoquímica, juntamente com o uso de imagens de satélite e modelagem computacional, permitem aos geólogos localizar e avaliar depósitos de recursos naturais com maior precisão e eficiência, minimizando os impactos ambientais.
+
+Além de sua importância econômica, a geologia é vital para a compreensão e mitigação de riscos naturais, como terremotos, erupções vulcânicas, deslizamentos de terra e tsunamis. O estudo dos processos geológicos e a análise de dados históricos permitem prever a ocorrência desses eventos e desenvolver estratégias de mitigação para proteger vidas humanas e infraestrutura. A geologia ambiental, uma subdisciplina que examina a interação entre processos geológicos e atividades humanas, também desempenha um papel importante na gestão `sustentável` do ambiente. Questões como a contaminação do solo e da água, a gestão de resíduos e a recuperação de áreas degradadas são abordadas por geólogos ambientais, que trabalham para equilibrar a exploração de recursos com a preservação ecológica.
+
+Em suma, a geologia é uma ciência multifacetada que contribui de maneira significativa para o avanço do conhecimento científico e para a resolução de problemas práticos relacionados aos recursos naturais e aos riscos ambientais. O trabalho dos geólogos é essencial para garantir o uso `sustentável` dos recursos da Terra e para proteger nosso planeta e suas populações contra desastres naturais.
+
+#### Desafios Ecológicos A Crise Ambiental do Século XXI
+Os problemas ecológicos representam uma das maiores ameaças à sustentabilidade e à saúde do planeta. A degradação ambiental, impulsionada por atividades humanas como desmatamento, urbanização e `agricultura` intensiva, tem causado a destruição de habitats naturais, levando à perda de biodiversidade. Espécies inteiras estão sendo extintas a uma taxa alarmante, comprometendo ecossistemas complexos e interconectados que são vitais para a estabilidade ambiental e para a provisão de serviços ecossistêmicos essenciais, como a purificação da água, a polinização e o controle de pragas.
+
+A poluição é outro grande problema ecológico, com efeitos devastadores sobre o ar, a água e o solo. Emissões industriais e de veículos contribuem para a poluição do ar, causando problemas respiratórios em seres humanos e animais, além de contribuir para o aquecimento global. A poluição da água, resultante do despejo de resíduos industriais, agrícolas e domésticos, contamina fontes de água potável e prejudica a vida aquática. Além disso, o uso excessivo de pesticidas e fertilizantes químicos na `agricultura` degrada a qualidade do solo, tornando-o menos fértil e mais propenso à erosão.
+
+As mudanças climáticas, amplamente atribuídas às atividades humanas, exacerbam todos esses problemas. O aumento das temperaturas globais está associado ao derretimento das calotas polares e ao aumento do nível do mar, ameaçando comunidades costeiras e ecossistemas marinhos. Eventos climáticos extremos, como furacões, secas e enchentes, estão se tornando mais frequentes e intensos, causando destruição em larga escala e colocando em risco a segurança alimentar e hídrica. Para mitigar esses problemas ecológicos, é fundamental adotar políticas de conservação, promover a sustentabilidade e investir em tecnologias limpas que reduzam o impacto ambiental.
+
+#### Sem ocorrencias nos outros textos
 
 ### Conclusão
 
-Os resultados dos testes demonstraram que a implementação do sistema de acionamento automático em carros autônomos, utilizando programação multithread em C, é capaz de lidar eficientemente com diferentes configurações e cenários, mantendo a integridade das operações mesmo em condições de alta carga e probabilidade de falha. A utilização de múltiplas threads, semáforos e mutexes proporcionou uma execução concorrente e segura do sistema, garantindo tempos de resposta rápidos e uma distribuição eficiente das tarefas entre os componentes do sistema. Esses resultados validam a abordagem adotada e destacam a viabilidade do uso de técnicas de programação paralela na construção de sistemas complexos e robustos.
+Com base nos resultados obtidos, podemos concluir que o sistema de busca de palavras-chave desenvolvido demonstrou conseguir identificar e extrair as palavras chaves dos textos fornecidos. A utilização do MPI também facilitou bastante na programação distribuida, que garantiram o paralelismo para um uso mais eficiente das réplicas.

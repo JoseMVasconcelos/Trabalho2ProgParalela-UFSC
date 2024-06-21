@@ -2,6 +2,7 @@ import os
 import fnmatch
 import datetime
 import time
+import re
 from mpi4py import MPI
 
 #mpirun -n 4 python3 main.py
@@ -16,7 +17,7 @@ size = comm.Get_size()
 
 
 def client():
-    queries = ["saúde mental psicologia terapia"]
+    queries = ["agricultura sustentável agroecologia permacultura"]
 #     queries = [
 #   "inteligência artificial aprendizado de máquina redes neurais",
 #   "mudança climática aquecimento global energia renovável",
@@ -178,19 +179,20 @@ def replica():
     
     while True:
         results = []
-
+        resultsDebug = []
         keywords = comm.recv(source=MPI.ANY_SOURCE, status = status)
         for root, dirnames, filenames in os.walk("./texts"):
             for filename in fnmatch.filter(filenames, "*.txt"):
                 occurrences = 0
                 file_path = os.path.join(root, filename)
                 with open(file_path, 'r', encoding='utf-8') as file:
-                    for line in file:
-                        separatedLine = line.split(" ")
-                        for word in keywords:
-                            if word in separatedLine:
-                                occurrences += 1
-                            print (word, occurrences, filename)
+                    for unfilteredLine in file:
+                        separatedLine = re.sub(r'[^\w\s]|\n', ' ', unfilteredLine).lower()
+                        separatedLine = separatedLine .split(" ")
+                        for word in separatedLine:
+                            for keyword in keywords:
+                                if keyword == word:
+                                    occurrences += 1
                 if occurrences >= 1:
                     results.append((filename, occurrences))
         
