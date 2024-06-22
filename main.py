@@ -3,6 +3,7 @@ import fnmatch
 import datetime
 import time
 import re
+import random
 from mpi4py import MPI
 
 #mpirun -n 4 python3 main.py
@@ -120,11 +121,11 @@ def client():
 
     while query_position < len(queries):
         print(f"CLIENTE enviando pesquisa para nó raiz: {queries[query_position]}. TIMESTAMP: " + str(datetime.datetime.now()))
-        comm.send(queries[query_position], dest=root_rank)
+        comm.send(queries[query_position], dest=root_rank, tag=0)
         print(f"CLIENTE recebeu o resultado do nó raiz!: {comm.recv(source=root_rank)}. TIMESTAMP: " + str(datetime.datetime.now()))
         query_position += 1
         print('------------------------------------------------------------------------------------')
-        time.sleep(2)
+        time.sleep(random.randint(1, 2))
     comm.Abort()
     
 
@@ -154,13 +155,12 @@ def root(num_replicas):
 
         for i in range(len(keywordArray)):
             print(f"NÓ RAIZ envia palavra chaves {keywordArray[i]} para réplica {replicas_ranks[i]-2}. TIMESTAMP: " + str(datetime.datetime.now()))
-            comm.send(keywordArray[i], dest=replicas_ranks[i])
+            comm.send(keywordArray[i], dest=replicas_ranks[i], tag=0)
 
         for i in range(len(keywordArray)):
             status = MPI.Status()
             results = comm.recv(source=MPI.ANY_SOURCE, status = status)
             print(f"NÓ RAIZ recebeu resultados da réplica {status.Get_source()-2}. TIMESTAMP: " + str(datetime.datetime.now()))
-            # results = comm.recv(source=replicas_ranks[i])
             for result in results:
                 if result[0] in query_response.keys():
                     query_response[result[0]] = query_response.get(result[0]) + result[1]
@@ -168,9 +168,9 @@ def root(num_replicas):
                     query_response.update({result[0]: result[1]})
 
         if query_response:
-            comm.send(query_response, dest=client_rank)
+            comm.send(query_response, dest=client_rank, tag=0)
         else:
-            comm.send("Sem ocorrências!", dest=client_rank)
+            comm.send("Sem ocorrências!", dest=client_rank, tag=0)
 
     
 def replica():
@@ -195,7 +195,7 @@ def replica():
                 if occurrences >= 1:
                     results.append((filename, occurrences))
         
-        comm.send(results, dest=status.Get_source())
+        comm.send(results, dest=status.Get_source(), tag=0)
 
 class main():
 
