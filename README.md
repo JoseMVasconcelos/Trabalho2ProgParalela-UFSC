@@ -54,6 +54,9 @@ Se não aparecer uma versão, instale com os comandos:
 $ sudo apt-get install openmpi-bin
 $ sudo apt-get install openmpi-doc
 $ sudo apt-get install libopenmpi-dev
+$ sudo apt-get install mpich
+$ sudo apt-get install mpich-devel
+$ export PATH=/usr/lib64/mpich/bin:$PATH
 ```
 Com python3 e MPi instalado, execute o seguinte código para instalar a biblioteca mpi4py:
 ```sh

@@ -12,12 +12,13 @@ from mpi4py import MPI
 if not MPI.Is_initialized():
     MPI.Init()
 
+#Incialização do comunicador
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-
 def client():
+    #Queries do cliente
     queries = [
   "inteligência artificial aprendizado de máquina redes neurais",
   "mudança climática aquecimento global energia renovável",
@@ -122,7 +123,7 @@ def client():
     while query_position < len(queries):
         print(f"CLIENTE enviando pesquisa para nó raiz: {queries[query_position]}. TIMESTAMP: " + str(datetime.datetime.now()))
         comm.send(queries[query_position], dest=root_rank, tag=0)
-        print(f"CLIENTE recebeu o resultado do nó raiz!: {comm.recv(source=root_rank)}. TIMESTAMP: " + str(datetime.datetime.now()))
+        print(f"CLIENTE recebeu o resultado do nó raiz!: {comm.recv(source=root_rank, tag=MPI.ANY_TAG, status=None)}. TIMESTAMP: " + str(datetime.datetime.now()))
         query_position += 1
         print('------------------------------------------------------------------------------------')
         time.sleep(random.randint(1, 2))
@@ -139,7 +140,7 @@ def root(num_replicas):
     while True:
         query_response = dict()
         #Recebe a query do cliente e separa em palavras 
-        client_query = comm.recv(source=client_rank)
+        client_query = comm.recv(source=client_rank, tag=MPI.ANY_TAG, status=None)
         print("NÓ RAIZ recebeu pesquisa do cliente. TIMESTAMP: " + str(datetime.datetime.now()))
         keywords = client_query.split(" ")
         keywordArray = []
@@ -159,7 +160,7 @@ def root(num_replicas):
 
         for i in range(len(keywordArray)):
             status = MPI.Status()
-            results = comm.recv(source=MPI.ANY_SOURCE, status = status)
+            results = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status = status)
             print(f"NÓ RAIZ recebeu resultados da réplica {status.Get_source()-2}. TIMESTAMP: " + str(datetime.datetime.now()))
             for result in results:
                 if result[0] in query_response.keys():
@@ -179,7 +180,7 @@ def replica():
     while True:
         results = []
         resultsDebug = []
-        keywords = comm.recv(source=MPI.ANY_SOURCE, status = status)
+        keywords = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status = status)
         for root, dirnames, filenames in os.walk("./texts"):
             for filename in fnmatch.filter(filenames, "*.txt"):
                 occurrences = 0
